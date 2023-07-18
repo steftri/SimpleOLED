@@ -1,0 +1,19 @@
+# Syntax Coloring Map For ArduinoLibrary
+# https://arduino.github.io/arduino-cli/library-specification/#keywords
+# Formatted by a single true tab (not spaces)
+
+# Datatypes (KEYWORD1)
+ArduinoLibrarySkeleton	KEYWORD1
+
+# Methods and Functions (KEYWORD2)
+begin	KEYWORD2
+end	KEYWORD2
+getValue	KEYWORD2
+setValue	KEYWORD2
+
+# Instances (KEYWORD2)
+myArduinoLibrarySkeleton	KEYWORD2
+
+# Constants (LITERAL1)
+RcOK	LITERAL1
+RcError	LITERAL1
