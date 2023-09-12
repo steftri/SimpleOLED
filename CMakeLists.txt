@@ -15,3 +15,5 @@ add_library(ArduinoLibrarySkeleton STATIC
 
 target_compile_definitions(ArduinoLibrarySkeleton PRIVATE ARDUINOLIBRARYSKELETON_LIBRARY)
 target_include_directories(ArduinoLibrarySkeleton PUBLIC src)
+
+# target_link_libraries(ArduinoLibrarySkeleton PUBLIC <TBD>)  # use this if the library depends from other libraries
