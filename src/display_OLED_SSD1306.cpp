@@ -1,10 +1,23 @@
+//
+//  OLED_SSD1306.cpp
+//  SimpleOLED
+//
+//  Created by Stefan Trippler on 2021-02-23.
+//
+
 #ifdef AVR
 #include <Arduino.h>
 #include <Wire.h>
+#else
+#include <cstdint>
+#include <cstring>
 #endif
 
+
+
 #include "configSimpleOLED.h"
-#include "simpleoled.h"
+#include "display_OLED_SSD1306.h"
+
 
 #ifdef configUSE_DEFAULT_FONT
 #define USE_DEFAULT_FONT configUSE_DEFAULT_FONT
@@ -50,9 +63,10 @@ static const uint8_t gau8_UnknownChar[8] PROGMEM = {
 };
 
 
-SimpleOLED::SimpleOLED(uint8_t u8_WireAddr, uint8_t u8_Width, uint8_t u8_Height)
+
+display::display(uint8_t u8_WireAddr, uint8_t u8_Width, uint8_t u8_Height)
 {
- mu8_WireAddr = u8_WireAddr;
+  mu8_WireAddr = u8_WireAddr;
   mu8_Width    = u8_Width;
   mu8_Height   = u8_Height;
   
@@ -82,7 +96,7 @@ SimpleOLED::SimpleOLED(uint8_t u8_WireAddr, uint8_t u8_Width, uint8_t u8_Height)
 
 
 
-SimpleOLED::ERc SimpleOLED::begin(const bool b_Enable)
+int32_t display::init(const bool b_Enable)
 {
   uint8_t au8_Cmd[2];
   Wire.begin(); // join i2c bus (address optional for master)
@@ -129,30 +143,23 @@ SimpleOLED::ERc SimpleOLED::begin(const bool b_Enable)
 
   clear();
   enable(b_Enable);
-
-  return RcOK;
+  
+  return 0;
 }
 
 
 
-void SimpleOLED::end(void)
-{
-  enable(false);
-}
-
-
-
-SimpleOLED::ERc SimpleOLED::enable(const bool b_Enable)
+int32_t display::enable(const bool b_Enable)
 {
   // Display On
   _send(DisplayCommand, 1, (const uint8_t *)(b_Enable?"\xAF":"\xAE"));
 
-  return RcOK;
+  return 0;
 }
 
 
 
-SimpleOLED::ERc SimpleOLED::clear(void)
+int32_t display::clear(void)
 {
   uint8_t au8_CommandX[3]={0x21, 0, 0x7f};  // width = 0x7f = 127
   uint8_t au8_CommandY[3]={0x22};
@@ -174,28 +181,28 @@ SimpleOLED::ERc SimpleOLED::clear(void)
   }
   setCursor(0, 0);
   
-  return RcOK;
+  return 0;
 }
 
 
 
-SimpleOLED::ERc SimpleOLED::setCursor(const uint8_t u8_Column, const uint8_t u8_Row)
+int32_t display::setCursor(const uint8_t u8_Column, const uint8_t u8_Row)
 {
   mu8_CursorX = u8_Column*mu8_FontWidth;
   mu8_CursorY = u8_Row*(mb_DoubleFontHeight?16:8);
   setDrawRegion(mu8_CursorX, mu8_CursorY, mb_DoubleFontHeight?2:1);
-  return RcOK;
+  return 0;
 }
 
 
 
-SimpleOLED::ERc SimpleOLED::setFont(const char *pu8_Name, const bool b_DoubleHeight)
+int32_t display::setFont(const char *pu8_Name, const bool b_DoubleHeight)
 {
   mb_DoubleFontHeight = b_DoubleHeight;
   
   // if font is not selected (=null), only change font height and return 0
   if(!pu8_Name)
-    return RcOK;
+    return 0;
 
 #if USE_DEFAULT_FONT == 1
   if(0==strncmp(pu8_Name, "default", 8))
@@ -203,7 +210,7 @@ SimpleOLED::ERc SimpleOLED::setFont(const char *pu8_Name, const bool b_DoubleHei
     mpu8_Font = (uint8_t*)gau8_CharDefault;
     mu8_NumberOfChars = sizeof(gau8_CharDefault)>>3;
     mu8_FontWidth = WIDTH_OF_DEFAULT_CHARS;
-    return RcOK;
+    return 0;
   }
 #endif
 
@@ -213,7 +220,7 @@ SimpleOLED::ERc SimpleOLED::setFont(const char *pu8_Name, const bool b_DoubleHei
     mpu8_Font = (uint8_t*)gau8_CharTopaz;
     mu8_NumberOfChars = sizeof(gau8_CharTopaz)>>3;
     mu8_FontWidth = WIDTH_OF_TOPAZ_CHARS;
-    return RcOK;
+    return 0;
   }
 #endif
 
@@ -223,16 +230,16 @@ SimpleOLED::ERc SimpleOLED::setFont(const char *pu8_Name, const bool b_DoubleHei
     mpu8_Font = (uint8_t*)gau8_CharC64;
     mu8_NumberOfChars = sizeof(gau8_CharC64)>>3;
     mu8_FontWidth = WIDTH_OF_C64_CHARS;
-    return RcOK;
+    return 0;
   }
 #endif
 
-  return RcError;
+  return -1;
 }
 
 
 
-SimpleOLED::ERc SimpleOLED::print(const char *pc_String)
+int32_t display::print(const char *pc_String)
 {
   unsigned char uc_Char;
   const uint8_t *pu8_PgmBitmap;
@@ -278,21 +285,21 @@ SimpleOLED::ERc SimpleOLED::print(const char *pc_String)
     }
   }
 
-  return RcOK;
+  return 0;
 }
 
 
-SimpleOLED::ERc SimpleOLED::println(const char *pc_String)
+int32_t display::println(const char *pc_String)
 {
   print(pc_String);
   print("\n");
   
-  return RcOK;
+  return 0;
 }
 
 
 
-SimpleOLED::ERc SimpleOLED::setDrawRegion(const uint8_t u8_Segment, const uint8_t u8_StartPage, const uint8_t u8_Pages)
+int32_t display::setDrawRegion(const uint8_t u8_Segment, const uint8_t u8_StartPage, const uint8_t u8_Pages)
 {
   uint8_t au8_CommandY[3]={0x22, (uint8_t)(u8_StartPage>>3), (uint8_t)(u8_StartPage>>3)};
   uint8_t au8_CommandX[3]={0x21, u8_Segment, 0x7f};  // width = 0x7f = 127
@@ -309,19 +316,19 @@ SimpleOLED::ERc SimpleOLED::setDrawRegion(const uint8_t u8_Segment, const uint8_
   // Set Column address
   _send(DisplayCommand, 3, au8_CommandX);
 
-  return RcOK;
+  return 0;
 }
 
 
 
-SimpleOLED::ERc SimpleOLED::drawBuffer(const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer)
+int32_t display::drawBuffer(const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer)
 {
   return _send(DisplayData, u8_BufferSize, pu8_Buffer);
 }
 
 
 
-SimpleOLED::ERc SimpleOLED::_send(const EContent e_Content, const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer)
+int32_t display::_send(const EContent e_Content, const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer)
 {
   #if (ARDUINO >= 157) && !defined(ARDUINO_STM32_FEATHER)
     Wire.setClock(1000000);
@@ -339,5 +346,5 @@ SimpleOLED::ERc SimpleOLED::_send(const EContent e_Content, const uint8_t u8_Buf
     Wire.setClock(100000);
   #endif
   
-  return RcOK;
+  return 0;
 }
