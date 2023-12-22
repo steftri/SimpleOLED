@@ -1,11 +1,11 @@
-#ifndef _LIB_ARDUINO_LIBRARY_SKELETON_H_
-#define _LIB_ARDUINO_LIBRARY_SKELETON_H_
+#ifndef _LIB_SIMPLEOLED_H_
+#define _LIB_SIMPLEOLED_H_
 
 #include <inttypes.h>
 
 
 
-class ArduinoLibrarySkeleton
+class SimpleOLED
 {
 public:
   typedef enum
@@ -18,7 +18,7 @@ private:
   uint32_t mu32_Value;
 
 public:
-  ArduinoLibrarySkeleton(void);
+  SimpleOLED(void);
 
   ERc begin(void);
   void end(void);
