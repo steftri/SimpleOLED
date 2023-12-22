@@ -1,7 +1,5 @@
-#ifdef AVR
 #include <Arduino.h>
 #include <Wire.h>
-#endif
 
 #include "configSimpleOLED.h"
 #include "simpleoled.h"
@@ -23,7 +21,6 @@
 #else
 #define USE_C64_FONT   0
 #endif
-
 
 
 #if USE_DEFAULT_FONT == 1
@@ -323,9 +320,9 @@ SimpleOLED::ERc SimpleOLED::drawBuffer(const uint8_t u8_BufferSize, const uint8_
 
 SimpleOLED::ERc SimpleOLED::_send(const EContent e_Content, const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer)
 {
-  #if (ARDUINO >= 157) && !defined(ARDUINO_STM32_FEATHER)
-    Wire.setClock(1000000);
-  #endif
+  //#if (ARDUINO >= 157) && !defined(ARDUINO_STM32_FEATHER)
+  //  Wire.setClock(400000);
+  //#endif
   
   Wire.beginTransmission(mu8_WireAddr);
   Wire.write((uint8_t)e_Content);           // write DisplayCommand or DisplayData
@@ -335,9 +332,9 @@ SimpleOLED::ERc SimpleOLED::_send(const EContent e_Content, const uint8_t u8_Buf
   }
   Wire.endTransmission();
   
-  #if (ARDUINO >= 157) && !defined(ARDUINO_STM32_FEATHER)
-    Wire.setClock(100000);
-  #endif
+//  #if (ARDUINO >= 157) && !defined(ARDUINO_STM32_FEATHER)
+//    Wire.setClock(100000);
+//  #endif
   
   return RcOK;
 }

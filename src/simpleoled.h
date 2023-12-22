@@ -28,7 +28,7 @@ private:
   typedef enum { DisplayCommand = 0x00, DisplayData = 0x40 } EContent;
 
 public:
-  SimpleOLED(uint8_t u8_WireAddr, uint8_t u8_Width, uint8_t u8_Height);
+  SimpleOLED(const uint8_t u8_WireAddr, const uint8_t u8_Width, const uint8_t u8_Height);
 
   ERc begin(const bool b_Enable = true);
   void end(void);
