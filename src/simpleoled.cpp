@@ -1,26 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "configSimpleOLED.h"
 #include "simpleoled.h"
-
-#ifdef configUSE_DEFAULT_FONT
-#define USE_DEFAULT_FONT configUSE_DEFAULT_FONT
-#else
-#define USE_DEFAULT_FONT 1
-#endif
-
-#ifdef configUSE_TOPAZ_FONT
-#define USE_TOPAZ_FONT configUSE_TOPAZ_FONT
-#else
-#define USE_TOPAZ_FONT 1
-#endif
-
-#ifdef configUSE_C64_FONT
-#define USE_C64_FONT   configUSE_C64_FONT
-#else
-#define USE_C64_FONT   0
-#endif
 
 
 #if USE_DEFAULT_FONT == 1
@@ -186,16 +167,14 @@ SimpleOLED::ERc SimpleOLED::setCursor(const uint8_t u8_Column, const uint8_t u8_
 
 
 
-SimpleOLED::ERc SimpleOLED::setFont(const char *pu8_Name, const bool b_DoubleHeight)
+SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const bool b_DoubleHeight)
 {
   mb_DoubleFontHeight = b_DoubleHeight;
   
-  // if font is not selected (=null), only change font height and return 0
-  if(!pu8_Name)
-    return RcOK;
-
+  switch(e_Font)
+  {
 #if USE_DEFAULT_FONT == 1
-  if(0==strncmp(pu8_Name, "default", 8))
+  case Font6x8:
   {
     mpu8_Font = (uint8_t*)gau8_CharDefault;
     mu8_NumberOfChars = sizeof(gau8_CharDefault)>>3;
@@ -203,9 +182,8 @@ SimpleOLED::ERc SimpleOLED::setFont(const char *pu8_Name, const bool b_DoubleHei
     return RcOK;
   }
 #endif
-
 #if USE_TOPAZ_FONT == 1
-  if(0==strncmp(pu8_Name, "Topaz", 6))
+  case Topaz:
   {
     mpu8_Font = (uint8_t*)gau8_CharTopaz;
     mu8_NumberOfChars = sizeof(gau8_CharTopaz)>>3;
@@ -213,16 +191,18 @@ SimpleOLED::ERc SimpleOLED::setFont(const char *pu8_Name, const bool b_DoubleHei
     return RcOK;
   }
 #endif
-
 #if USE_C64_FONT == 1
-  if(0==strncmp(pu8_Name, "C64", 4))
+  case C64:
   {
     mpu8_Font = (uint8_t*)gau8_CharC64;
     mu8_NumberOfChars = sizeof(gau8_CharC64)>>3;
     mu8_FontWidth = WIDTH_OF_C64_CHARS;
     return RcOK;
   }
-#endif
+#endif  
+  default:
+    break;
+  }
 
   return RcError;
 }
