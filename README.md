@@ -131,11 +131,11 @@ Display.println("Hello World!");
 ## Changelog
 
 
-### 1.1.0
+### v1.1.1 (2023-12-23)
 
 * Sourcecode moved to GitHub
 
-### 1.0.0
+### v1.0.0
 
 * Initial release
 
