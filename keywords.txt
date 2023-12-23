@@ -1,18 +1,24 @@
-# Syntax Coloring Map For ArduinoLibrary
+# Syntax Coloring Map For SimpleOLED
 # https://arduino.github.io/arduino-cli/library-specification/#keywords
 # Formatted by a single true tab (not spaces)
 
 # Datatypes (KEYWORD1)
-ArduinoLibrarySkeleton	KEYWORD1
+SimpleOLED  KEYWORD1
 
 # Methods and Functions (KEYWORD2)
 begin	KEYWORD2
-end	KEYWORD2
-getValue	KEYWORD2
-setValue	KEYWORD2
+end  KEYWORD2
+enable	KEYWORD2
+clear	KEYWORD2
+setFont	KEYWORD2
+setCursor	KEYWORD2
+print	KEYWORD2
+println	KEYWORD2
+setDrawRegion	KEYWORD2
+drawBuffer	KEYWORD2
 
 # Instances (KEYWORD2)
-myArduinoLibrarySkeleton	KEYWORD2
+Display	KEYWORD2
 
 # Constants (LITERAL1)
 RcOK	LITERAL1
