@@ -55,8 +55,8 @@ An instance of the class "SimpleOLED" is needed. As first argument, the construc
 
 ```C++
 #define DISPLAY_I2C_ADDR 0x3C
-#define DISPLAY_WIDTH 128
-#define DISPLAY_HEIGHT 32
+#define DISPLAY_WIDTH     128
+#define DISPLAY_HEIGHT     32
 
 SimpleOLED Display(DISPLAY_I2C_ADDR, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 ```
@@ -87,14 +87,14 @@ Example:
 Display.clear();
 ```
 
-### setFont(char *Name, bool DoubleHeight)
-This function changes the font for the following operations. Possible fonts are "default", "Topaz" and "C64". The font height can be set with the parameter "DoubleHeight" - false means 8 pixels, true means 16 pixels.
+### setFont(EFont Font, bool DoubleHeight)
+This function changes the font for the following operations. Possible fonts are "Font6x8", "Topaz" and "C64". The font height can be set with the parameter "DoubleHeight" - false means 8 pixels, true means 16 pixels.
 
 After changing the font, the cursor position must be set again (see setCursor).
 
 Example:
 ```C++
-Display.setFont("Topaz", true);
+Display.setFont(SimpleOLED::Topaz, true);
 ```
 
 ### setCursor(uint8_t Column, uint8_t Row)
@@ -130,6 +130,9 @@ Display.println("Hello World!");
 
 ## Changelog
 
+### v1.2.0 (2023-12-23)
+
+* Font selection via enum instead of a string  
 
 ### v1.1.1 (2023-12-23)
 

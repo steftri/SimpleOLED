@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 
+#include "configSimpleOLED.h"
 
 
 class SimpleOLED
@@ -13,6 +14,19 @@ public:
     RcOK = 0,
     RcError = -1
   } ERc;
+
+  typedef enum 
+  { 
+#if USE_DEFAULT_FONT == 1
+    Font6x8 = 0,
+#endif
+#if USE_TOPAZ_FONT == 1
+    Topaz = 1,
+#endif
+#if USE_C64_FONT == 1
+    C64 = 2,
+#endif
+  } EFont;
 
 private:
   uint8_t mu8_WireAddr;
@@ -27,6 +41,8 @@ private:
 
   typedef enum { DisplayCommand = 0x00, DisplayData = 0x40 } EContent;
 
+
+
 public:
   SimpleOLED(const uint8_t u8_WireAddr, const uint8_t u8_Width, const uint8_t u8_Height);
 
@@ -36,10 +52,10 @@ public:
   ERc enable(const bool b_Enable);
   
   ERc clear(void);
-  ERc setFont(const char *pu8_Name, const bool b_DoubleHeight = false);
+  ERc setFont(const EFont e_Font, const bool b_DoubleHeight = false);
   ERc setCursor(const uint8_t u8_Column, const uint8_t u8_Row);  // in characters
-  ERc print(const char *puc_String);
-  ERc println(const char *puc_String);
+  ERc print(const char *pc_String);
+  ERc println(const char *pc_String);
 
   ERc setDrawRegion(const uint8_t u8_Segment, const uint8_t u8_StartPage, const uint8_t u8_Pages = 1);
   ERc drawBuffer(const uint8_t u8_Bytes, const uint8_t *pu8_Buffer);
