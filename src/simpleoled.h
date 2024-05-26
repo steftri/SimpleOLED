@@ -6,6 +6,18 @@
 #include "configSimpleOLED.h"
 
 
+
+class DisplayInterface
+{
+public:  
+  virtual void begin(void) = 0;
+  virtual void end(void) = 0;
+  virtual void sendCmd(const uint8_t *pCmdBuffer, const size_t cmdSize) = 0;
+  virtual void sendData(const uint8_t *pDataBuffer, const size_t dataSize) = 0;
+};
+
+
+
 class SimpleOLED
 {
 public:
@@ -29,7 +41,7 @@ public:
   } EFont;
 
 private:
-  uint8_t mu8_WireAddr;
+  DisplayInterface *mp_DisplayInterface;
   uint8_t mu8_Width;
   uint8_t mu8_Height;
   uint8_t mu8_CursorX;
@@ -39,12 +51,9 @@ private:
   uint8_t mu8_FontWidth;
   bool mb_DoubleFontHeight;
 
-  typedef enum { DisplayCommand = 0x00, DisplayData = 0x40 } EContent;
-
-
 
 public:
-  SimpleOLED(const uint8_t u8_WireAddr, const uint8_t u8_Width, const uint8_t u8_Height);
+  SimpleOLED(DisplayInterface *p_DisplayInterface, const uint8_t u8_Width, const uint8_t u8_Height);
 
   ERc begin(const bool b_Enable = true);
   void end(void);
@@ -59,9 +68,6 @@ public:
 
   ERc setDrawRegion(const uint8_t u8_Segment, const uint8_t u8_StartPage, const uint8_t u8_Pages = 1);
   ERc drawBuffer(const uint8_t u8_Bytes, const uint8_t *pu8_Buffer);
-
-private:
-  ERc _send(const EContent e_Content, const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer);
 };
 
 #endif

@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <Wire.h>
 
 #include "simpleoled.h"
 
@@ -28,9 +27,9 @@ static const uint8_t gau8_UnknownChar[8] PROGMEM = {
 };
 
 
-SimpleOLED::SimpleOLED(uint8_t u8_WireAddr, uint8_t u8_Width, uint8_t u8_Height)
+SimpleOLED::SimpleOLED(DisplayInterface *m_DisplayInterface, uint8_t u8_Width, uint8_t u8_Height)
 {
- mu8_WireAddr = u8_WireAddr;
+  mp_DisplayInterface = m_DisplayInterface;
   mu8_Width    = u8_Width;
   mu8_Height   = u8_Height;
   
@@ -63,47 +62,51 @@ SimpleOLED::SimpleOLED(uint8_t u8_WireAddr, uint8_t u8_Width, uint8_t u8_Height)
 SimpleOLED::ERc SimpleOLED::begin(const bool b_Enable)
 {
   uint8_t au8_Cmd[2];
-  Wire.begin(); // join i2c bus (address optional for master)
+
+  if(!mp_DisplayInterface)
+    return RcError;
+
+  mp_DisplayInterface->begin();
   
   // Set MUX ratio
   au8_Cmd[0] = 0xa8; au8_Cmd[1] = mu8_Height-1;
-  _send(DisplayCommand, 2, au8_Cmd);
+  mp_DisplayInterface->sendCmd(au8_Cmd, 2);
   
   // Set Display Offset
-  _send(DisplayCommand, 2, (const uint8_t *)"\xd3\x00");
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\xd3\x00", 2);
   
   // Set Display Start Line
-  _send(DisplayCommand, 1, (const uint8_t *)"\x40");
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\x40", 1);
 
   // Additional: Set memory addressing mode
-  _send(DisplayCommand, 2, (const uint8_t *)"\x20\x00");
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\x20\x00", 2);
 
   // Set Segment re-map
-  _send(DisplayCommand, 1, (const uint8_t *)"\xa1");   // column address 0 is mapped to SEG0 (default); ardafruit nimmt hier 0xa1
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\xa1", 1);   // column address 0 is mapped to SEG0 (default); ardafruit nimmt hier 0xa1
 
   // Set COM Output Scan Direction
-  _send(DisplayCommand, 1, (const uint8_t *)"\xc8");   // normal scan direction would be 0xc0
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\xc8", 1);   // normal scan direction would be 0xc0
   
   // Set COM Pins hardware configurarion
-  _send(DisplayCommand, 2, (const uint8_t *)((mu8_Height==64)?"\xDA\x12":"\xDA\x02"));
+  mp_DisplayInterface->sendCmd((const uint8_t *)((mu8_Height==64)?"\xDA\x12":"\xDA\x02"), 2);
   
   // Set Contrast Control
-  _send(DisplayCommand, 2, (const uint8_t *)"\x81\x7f");
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\x81\x7f", 2);
 
   // Disable Entire Display On
-  _send(DisplayCommand, 1, (const uint8_t *)"\xa4");
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\xa4", 1);
 
   // Set Normal Display
-  _send(DisplayCommand, 1, (const uint8_t *)"\xA6");
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\xA6", 1);
   
   // Set Osc Frequency
-  _send(DisplayCommand, 2, (const uint8_t *)"\xD5\x80");
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\xD5\x80", 2);
   
   // Enable charge pump regulator
-  _send(DisplayCommand, 2, (const uint8_t *)"\x8d\x14");  // EXERNAL VCC = 0x10, sonst 0x14
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\x8d\x14", 2);  // EXERNAL VCC = 0x10, sonst 0x14
 
   // Set address mode
-  _send(DisplayCommand, 2, (const uint8_t *)"\x20\x01");  // vertical address mode
+  mp_DisplayInterface->sendCmd((const uint8_t *)"\x20\x01", 2);  // vertical address mode
 
   clear();
   enable(b_Enable);
@@ -122,8 +125,11 @@ void SimpleOLED::end(void)
 
 SimpleOLED::ERc SimpleOLED::enable(const bool b_Enable)
 {
+  if(!mp_DisplayInterface)
+    return RcError;
+
   // Display On
-  _send(DisplayCommand, 1, (const uint8_t *)(b_Enable?"\xAF":"\xAE"));
+  mp_DisplayInterface->sendCmd((const uint8_t *)(b_Enable?"\xAF":"\xAE"), 1);
 
   return RcOK;
 }
@@ -134,20 +140,23 @@ SimpleOLED::ERc SimpleOLED::clear(void)
 {
   uint8_t au8_CommandX[3]={0x21, 0, 0x7f};  // width = 0x7f = 127
   uint8_t au8_CommandY[3]={0x22};
-    
+
+  if(!mp_DisplayInterface)
+    return RcError;
+
   // Set Column address
-  _send(DisplayCommand, 3, au8_CommandX);
+  mp_DisplayInterface->sendCmd(au8_CommandX, 3);
 
   for(uint8_t u8_Page=0; u8_Page<(uint8_t)(mu8_Height>>3); u8_Page++)
   {
     // Set Page address
     au8_CommandY[1]=u8_Page;
     au8_CommandY[2]=u8_Page;
-    _send(DisplayCommand, 3, au8_CommandY);
+    mp_DisplayInterface->sendCmd(au8_CommandY, 3);
 
     for(uint8_t u8_x=0; u8_x<mu8_Width; u8_x+=16)
     {
-      _send(DisplayData, 16, NULL);
+      mp_DisplayInterface->sendData((const uint8_t *)"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16);
     }
   }
   setCursor(0, 0);
@@ -259,6 +268,7 @@ SimpleOLED::ERc SimpleOLED::print(const char *pc_String)
 }
 
 
+
 SimpleOLED::ERc SimpleOLED::println(const char *pc_String)
 {
   print(pc_String);
@@ -274,17 +284,20 @@ SimpleOLED::ERc SimpleOLED::setDrawRegion(const uint8_t u8_Segment, const uint8_
   uint8_t au8_CommandY[3]={0x22, (uint8_t)(u8_StartPage>>3), (uint8_t)(u8_StartPage>>3)};
   uint8_t au8_CommandX[3]={0x21, u8_Segment, 0x7f};  // width = 0x7f = 127
 
+  if(!mp_DisplayInterface)
+    return RcError;
+
   if(u8_Pages>1)
     au8_CommandY[2]=(uint8_t)((u8_StartPage>>3)+(u8_Pages-1));
 
   // Set address mode
-  //_send(DisplayCommand, 3, (const uint8_t *)"\x20\x01");
+  //mp_DisplayInterface->sendCmd(3, (const uint8_t *)"\x20\x01");
 
   // Set Page address
-  _send(DisplayCommand, 3, au8_CommandY);
+  mp_DisplayInterface->sendCmd(au8_CommandY, 3);
   
   // Set Column address
-  _send(DisplayCommand, 3, au8_CommandX);
+  mp_DisplayInterface->sendCmd(au8_CommandX, 3);
 
   return RcOK;
 }
@@ -293,28 +306,11 @@ SimpleOLED::ERc SimpleOLED::setDrawRegion(const uint8_t u8_Segment, const uint8_
 
 SimpleOLED::ERc SimpleOLED::drawBuffer(const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer)
 {
-  return _send(DisplayData, u8_BufferSize, pu8_Buffer);
+  if(!mp_DisplayInterface)
+    return RcError;
+
+  mp_DisplayInterface->sendData(pu8_Buffer, u8_BufferSize);
+
+  return RcOK; 
 }
 
-
-
-SimpleOLED::ERc SimpleOLED::_send(const EContent e_Content, const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer)
-{
-  //#if (ARDUINO >= 157) && !defined(ARDUINO_STM32_FEATHER)
-  //  Wire.setClock(400000);
-  //#endif
-  
-  Wire.beginTransmission(mu8_WireAddr);
-  Wire.write((uint8_t)e_Content);           // write DisplayCommand or DisplayData
-  for(uint8_t i=0; i<u8_BufferSize; i++)
-  {
-    Wire.write(pu8_Buffer?pu8_Buffer[i]:0); // write zeros if pu8_Buffer is NULL
-  }
-  Wire.endTransmission();
-  
-//  #if (ARDUINO >= 157) && !defined(ARDUINO_STM32_FEATHER)
-//    Wire.setClock(100000);
-//  #endif
-  
-  return RcOK;
-}
