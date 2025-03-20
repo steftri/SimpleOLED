@@ -16,6 +16,10 @@
 #define USE_TOPAZ_FONT    1
 #endif
 
+#ifndef USE_TOPAZ_PROPORTIONAL_FONT
+#define USE_TOPAZ_PROPORTIONAL_FONT    1
+#endif
+
 #ifndef USE_C64_FONT
 #define USE_C64_FONT      1
 #endif
