@@ -1,5 +1,6 @@
-#include "utf8.h"
+#include <stdlib.h>
 
+#include "utf8.h"
 
 
 
@@ -54,22 +55,22 @@ uint32_t Utf8::toCodepoint(const char *pc_Utf8Char)
   if((pc_Utf8Char[0]&0x80)==0)
   {
     // 1 byte character
-    u32_Codepoint = pc_Utf8Char[0];
+    u32_Codepoint = (uint32_t)pc_Utf8Char[0];
   }
   else if((pc_Utf8Char[0]&0xe0)==0xc0)
   {
     // 2 byte character
-    u32_Codepoint = ((pc_Utf8Char[0]&0x1f)<<6) | (pc_Utf8Char[1]&0x3f);
+    u32_Codepoint = (((uint32_t)pc_Utf8Char[0]&0x1f)<<6) | ((uint32_t)pc_Utf8Char[1]&0x3f);
   }
   else if((pc_Utf8Char[0]&0xf0)==0xe0)
   {
     // 3 byte character
-    u32_Codepoint = ((pc_Utf8Char[0]&0x0f)<<12) | ((pc_Utf8Char[1]&0x3f)<<6) | (pc_Utf8Char[2]&0x3f);
+    u32_Codepoint = (((uint32_t)pc_Utf8Char[0]&0x0f)<<12) | (((uint32_t)pc_Utf8Char[1]&0x3f)<<6) | ((uint32_t)pc_Utf8Char[2]&0x3f);
   }
   else if((pc_Utf8Char[0]&0xf8)==0xf0)
   {
     // 4 byte character
-    u32_Codepoint = ((pc_Utf8Char[0]&0x07)<<18) | ((pc_Utf8Char[1]&0x3f)<<12) | ((pc_Utf8Char[2]&0x3f)<<6) | (pc_Utf8Char[3]&0x3f);
+    u32_Codepoint = (((uint32_t)pc_Utf8Char[0]&0x07)<<18) | (((uint32_t)pc_Utf8Char[1]&0x3f)<<12) | (((uint32_t)pc_Utf8Char[2]&0x3f)<<6) | ((uint32_t)pc_Utf8Char[3]&0x3f);
   }
 
   return u32_Codepoint;

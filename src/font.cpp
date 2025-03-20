@@ -2,6 +2,8 @@
 #include "font.h"
 
 
+
+
 static const uint8_t UNKNOWN_CHAR_DATA[] PROGMEM =
 {
   B10101010,
@@ -51,13 +53,13 @@ Font::ERc Font::getCharacterData(const uint8_t **ppu8_CharDataAddress, uint8_t *
     // ok, we found the character, now we have to calculate the width and the address of the character data
     if(u32_CodePoint>0)
     {
-      pu8_CharDataAddress = &mpu8_CharData[mpu16_ContCharPos[u32_CodePoint-1]];
-      u8_CharWidth = mpu16_ContCharPos[u32_CodePoint]-mpu16_ContCharPos[u32_CodePoint-1];
+      pu8_CharDataAddress = &mpu8_CharData[pgm_read_word(&mpu16_ContCharPos[u32_CodePoint-1])];
+      u8_CharWidth = pgm_read_word(&mpu16_ContCharPos[u32_CodePoint])-pgm_read_word(&mpu16_ContCharPos[u32_CodePoint-1]);
     }
     else
     {
       pu8_CharDataAddress = mpu8_CharData;
-      u8_CharWidth = mpu16_ContCharPos[0];
+      u8_CharWidth = pgm_read_word(&mpu16_ContCharPos[0]);
     }
 
     rc = ERc::OK;
@@ -67,10 +69,10 @@ Font::ERc Font::getCharacterData(const uint8_t **ppu8_CharDataAddress, uint8_t *
     // search for the character in the mapping table
     for(uint16_t i=0; i<mu16_NumberOfUtf8Characters; i++)
     {
-      if(mp_Utf8CharPos[i].u32_CodePoint==u32_CodePoint)
+      if(pgm_read_dword(&mp_Utf8CharPos[i].u32_CodePoint)==u32_CodePoint)
       {
-        pu8_CharDataAddress = &mpu8_CharData[mp_Utf8CharPos[i].u16_CharPos];
-        u8_CharWidth = mp_Utf8CharPos[i].u8_CharWidth;
+        pu8_CharDataAddress = &mpu8_CharData[pgm_read_word(&mp_Utf8CharPos[i].u16_CharPos)];
+        u8_CharWidth = pgm_read_byte(&mp_Utf8CharPos[i].u8_CharWidth);
         rc = ERc::OK;
         break;
       }

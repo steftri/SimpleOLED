@@ -6,6 +6,9 @@
 #include "configSimpleOLED.h"
 
 
+#include "font_default.h"
+#include "font_topaz8x8.h"
+#include "font_c64.h"
 
 class DisplayInterface
 {
@@ -15,7 +18,6 @@ public:
   virtual void sendCmd(const uint8_t *pCmdBuffer, const size_t cmdSize) = 0;
   virtual void sendData(const uint8_t *pDataBuffer, const size_t dataSize) = 0;
 };
-
 
 
 class SimpleOLED
@@ -46,11 +48,18 @@ private:
   uint8_t mu8_Height;
   uint8_t mu8_CursorX;
   uint8_t mu8_CursorY;
-  const uint8_t *mpu8_Font;
-  uint8_t mu8_NumberOfChars;
-  uint8_t mu8_FontWidth;
   bool mb_DoubleFontHeight;
 
+#if USE_DEFAULT_FONT == 1
+  FontDefault m_FontDefault;
+#endif
+#if USE_TOPAZ_FONT == 1
+  FontTopaz8x8 m_FontTopaz8x8;
+#endif
+#if USE_C64_FONT == 1
+  FontC64 m_FontC64;
+#endif  
+  Font *mp_CurrentFont;
 
 public:
   SimpleOLED(DisplayInterface *p_DisplayInterface, const uint8_t u8_Width, const uint8_t u8_Height);

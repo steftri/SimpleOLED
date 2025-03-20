@@ -1,25 +1,10 @@
 #include <Arduino.h>
 
+#include "utf8.h"
+
 #include "simpleoled.h"
 
 
-#include "font_topaz_proportional.h"
-#include "font_topaz8x8.h"
-#include "font_default.h"
-#include "font_c64.h"
-
-
-#if USE_DEFAULT_FONT == 1
-#include "display_font_default.h"
-#endif
-
-#if USE_TOPAZ_FONT == 1
-#include "display_font_topaz.h"
-#endif
-
-#if USE_C64_FONT == 1
-#include "display_font_C64.h"
-#endif
 
 static const uint8_t gau8_UnknownChar[8] PROGMEM = {
   0b10101010,
@@ -40,21 +25,13 @@ SimpleOLED::SimpleOLED(DisplayInterface *m_DisplayInterface, uint8_t u8_Width, u
   mu8_Height   = u8_Height;
   
 #if USE_DEFAULT_FONT == 1
-  mpu8_Font = (uint8_t*)gau8_CharDefault;
-  mu8_NumberOfChars = sizeof(gau8_CharDefault)>>3;
-  mu8_FontWidth = WIDTH_OF_DEFAULT_CHARS;
+  mp_CurrentFont = &m_FontDefault;
 #elif USE_TOPAZ_FONT == 1
-  mpu8_Font = (uint8_t*)gau8_CharTopaz;
-  mu8_NumberOfChars = sizeof(gau8_CharTopaz)>>3;
-  mu8_FontWidth = WIDTH_OF_TOPAZ_CHARS;
+  mp_CurrentFont = &m_FontTopaz8x8;
 #elif USE_C64_FONT == 1
-  mpu8_Font = (uint8_t*)gau8_CharC64;
-  mu8_NumberOfChars = sizeof(gau8_CharC64)>>3;
-  mu8_FontWidth = WIDTH_OF_C64_CHARS;
+  mp_CurrentFont = &m_FontC64;
 #else
-  mpu8_Font = (void*)0;
-  mu8_NumberOfChars = 0;
-  mu8_FontWidth = WIDTH_OF_DEFAULT_CHARS;
+  mp_CurrentFont = &m_FontDefault;
 #endif
 
   mb_DoubleFontHeight = false;
@@ -174,7 +151,7 @@ SimpleOLED::ERc SimpleOLED::clear(void)
 
 SimpleOLED::ERc SimpleOLED::setCursor(const uint8_t u8_Column, const uint8_t u8_Row)
 {
-  mu8_CursorX = u8_Column*mu8_FontWidth;
+  mu8_CursorX = u8_Column*8;
   mu8_CursorY = u8_Row*(mb_DoubleFontHeight?16:8);
   setDrawRegion(mu8_CursorX, mu8_CursorY, mb_DoubleFontHeight?2:1);
   return RcOK;
@@ -191,27 +168,21 @@ SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const bool b
 #if USE_DEFAULT_FONT == 1
   case Font6x8:
   {
-    mpu8_Font = (uint8_t*)gau8_CharDefault;
-    mu8_NumberOfChars = sizeof(gau8_CharDefault)>>3;
-    mu8_FontWidth = WIDTH_OF_DEFAULT_CHARS;
+    mp_CurrentFont = &m_FontDefault;
     return RcOK;
   }
 #endif
 #if USE_TOPAZ_FONT == 1
   case Topaz:
   {
-    mpu8_Font = (uint8_t*)gau8_CharTopaz;
-    mu8_NumberOfChars = sizeof(gau8_CharTopaz)>>3;
-    mu8_FontWidth = WIDTH_OF_TOPAZ_CHARS;
+    mp_CurrentFont = &m_FontTopaz8x8;
     return RcOK;
   }
 #endif
 #if USE_C64_FONT == 1
   case C64:
   {
-    mpu8_Font = (uint8_t*)gau8_CharC64;
-    mu8_NumberOfChars = sizeof(gau8_CharC64)>>3;
-    mu8_FontWidth = WIDTH_OF_C64_CHARS;
+    mp_CurrentFont = &m_FontC64;
     return RcOK;
   }
 #endif  
@@ -226,17 +197,20 @@ SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const bool b
 
 SimpleOLED::ERc SimpleOLED::print(const char *pc_String)
 {
-  unsigned char uc_Char;
+  uint32_t u32_CharacterCode;
   const uint8_t *pu8_PgmBitmap;
-  
+  uint8_t u8_CharacterWidth;
   uint8_t au8_Bitmap[16];
   uint8_t u8_Bitmap;
   
-  for(uint8_t i=0; pc_String[i]; i++)
+  uint16_t u16_StringLenth;
+  u16_StringLenth = Utf8::strLength(pc_String);
+
+  for(uint8_t i=0; i<u16_StringLenth; i++)
   {
-    uc_Char=(unsigned char)pc_String[i];
+    u32_CharacterCode=Utf8::toCodepoint(pc_String, i);
     
-    if(uc_Char=='\n')
+    if(u32_CharacterCode=='\n')
     {
       mu8_CursorY += (mb_DoubleFontHeight?16:8);
       setDrawRegion(mu8_CursorX, mu8_CursorY, mb_DoubleFontHeight?2:1);
@@ -244,29 +218,29 @@ SimpleOLED::ERc SimpleOLED::print(const char *pc_String)
     }
     
     // if the character is printable
-    if(mpu8_Font && (uc_Char>=0x20) && (uc_Char<=0x7f) && ((uc_Char-0x20)<mu8_NumberOfChars))
-      pu8_PgmBitmap=&mpu8_Font[(uc_Char-0x20)*mu8_FontWidth];
-    else if(mpu8_Font && (uc_Char>=0xa0) && ((uc_Char-0x40)<mu8_NumberOfChars))
-      pu8_PgmBitmap=&mpu8_Font[(uc_Char-0x40)*mu8_FontWidth];
-    else
-      pu8_PgmBitmap=gau8_UnknownChar;
-    
+    pu8_PgmBitmap = gau8_UnknownChar;
+    u8_CharacterWidth = 8;
+    if(mp_CurrentFont)
+    {
+      mp_CurrentFont->getCharacterData(&pu8_PgmBitmap, &u8_CharacterWidth, u32_CharacterCode);
+    }
+
     // we have to copy the font bitmap data from flash to RAM first
     if(mb_DoubleFontHeight)
     {
-      for(uint8_t u8_Col=0; u8_Col<mu8_FontWidth; u8_Col++)
+      for(uint8_t u8_Col=0; u8_Col<u8_CharacterWidth; u8_Col++)
       {
         u8_Bitmap = pgm_read_byte(&pu8_PgmBitmap[u8_Col]);
         au8_Bitmap[u8_Col*2]  = ((u8_Bitmap&0x08)?0xC0:0x00) | ((u8_Bitmap&0x04)?0x30:0x00) | ((u8_Bitmap&0x02)?0x0C:0x00) | ((u8_Bitmap&0x01)?0x03:0x00);
         au8_Bitmap[u8_Col*2+1]= ((u8_Bitmap&0x80)?0xC0:0x00) | ((u8_Bitmap&0x40)?0x30:0x00) | ((u8_Bitmap&0x20)?0x0C:0x00) | ((u8_Bitmap&0x10)?0x03:0x00);
       }
-      drawBuffer(2*mu8_FontWidth, au8_Bitmap);
+      drawBuffer(2*u8_CharacterWidth, au8_Bitmap);
     }
     else
     {
-      for(uint8_t u8_Col=0; u8_Col<mu8_FontWidth; u8_Col++)
+      for(uint8_t u8_Col=0; u8_Col<u8_CharacterWidth; u8_Col++)
         au8_Bitmap[u8_Col]=pgm_read_byte(&pu8_PgmBitmap[u8_Col]);
-      drawBuffer(mu8_FontWidth, au8_Bitmap);
+      drawBuffer(u8_CharacterWidth, au8_Bitmap);
     }
   }
 
