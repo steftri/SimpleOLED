@@ -7,7 +7,8 @@
 
 
 #include "font_default.h"
-#include "font_topaz8x8.h"
+#include "font_topaz_8x8.h"
+#include "font_topaz_proportional.h"
 #include "font_c64.h"
 
 class DisplayInterface
@@ -32,13 +33,16 @@ public:
   typedef enum 
   { 
 #if USE_DEFAULT_FONT == 1
-    Font6x8 = 0,
+    Default,
 #endif
 #if USE_TOPAZ_FONT == 1
-    Topaz = 1,
+    Topaz,
+#endif
+#if USE_TOPAZ_PROPORTIONAL_FONT == 1
+    TopazProportional,
 #endif
 #if USE_C64_FONT == 1
-    C64 = 2,
+    C64,
 #endif
   } EFont;
 
@@ -55,6 +59,9 @@ private:
 #endif
 #if USE_TOPAZ_FONT == 1
   FontTopaz8x8 m_FontTopaz8x8;
+#endif
+#if USE_TOPAZ_PROPORTIONAL_FONT == 1
+  FontTopazProportional m_FontTopazProportional;
 #endif
 #if USE_C64_FONT == 1
   FontC64 m_FontC64;

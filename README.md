@@ -14,8 +14,8 @@ Therefore enhanced paint operations (circles, flood fill, lines etc.) are not po
 Three fonts are available:
 
 1. The default font is a very tiny font with 6x8 pixels per character.
-2. The Topaz font is a font inspired by Amiga OS 2.x and above. In contrast to the original font, the character mapping complies (with small exceptions) to ISO-8859-1.
-3. The C64 font is inspired by the font of the Commodore 64. The character mapping also complies to ASCII, but as the original C64 font, it does not have the special characters needed in some languages. 
+2. The Topaz font is a font inspired by Amiga OS 2.x and above. In contrast to the original font, some aditional characters are available (the EURO sign for example).
+3. The C64 font is inspired by the font of the Commodore 64. The character mapping also complies to ASCII/UTF-8, but as the original C64 font, it does not have the special characters needed in some languages. 
 
 
 ## Features
@@ -88,7 +88,7 @@ Display.clear();
 ```
 
 ### setFont(EFont Font, bool DoubleHeight)
-This function changes the font for the following operations. Possible fonts are "Font6x8", "Topaz" and "C64". The font height can be set with the parameter "DoubleHeight" - false means 8 pixels, true means 16 pixels.
+This function changes the font for the following operations. Possible fonts are "Default", "Topaz" and "C64". The font height can be set with the parameter "DoubleHeight" - false means 8 pixels, true means 16 pixels.
 
 After changing the font, the cursor position must be set again (see setCursor).
 
@@ -129,6 +129,10 @@ Display.println("Hello World!");
 
 
 ## Changelog
+
+### v2.0.0 (2025-03-20)
+
+* Support for UFT-8 and proportional fonts added
 
 ### v1.2.0 (2023-12-23)
 

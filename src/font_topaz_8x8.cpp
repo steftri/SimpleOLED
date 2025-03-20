@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include "font_topaz8x8.h"
+#include "font_topaz_8x8.h"
 
 static const uint8_t FONT_HEIGHT = 8;
 
