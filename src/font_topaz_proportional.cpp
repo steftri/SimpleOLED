@@ -1,4 +1,8 @@
+#ifdef ARDUINO
 #include <Arduino.h>
+#else
+#define PROGMEM
+#endif
 
 #include "font_topaz_proportional.h"
 
@@ -9,14 +13,14 @@ static const uint8_t FONT_HEIGHT = 8;
 static const uint8_t CHAR_DATA[] PROGMEM =
 {
    // 0x41, A
-   B00000000,
-   B01111110,
-   B01111111,
-   B00001001,
-   B00001001,
-   B01111111,
-   B01111110,
-   B00000000
+   0b00000000,
+   0b01111110,
+   0b01111111,
+   0b00001001,
+   0b00001001,
+   0b01111111,
+   0b01111110,
+   0b00000000
 };
 
 

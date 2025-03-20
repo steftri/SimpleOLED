@@ -1,4 +1,8 @@
+#ifdef ARDUINO
 #include <Arduino.h>
+#else
+#define PROGMEM
+#endif
 
 #include "font_c64.h"
 
