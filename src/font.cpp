@@ -47,13 +47,18 @@ Font::ERc Font::getCharacterData(const uint8_t **ppu8_CharDataAddress, uint8_t *
   if(u32_CodePoint<mu16_NumberOfContCharaters)
   {
     // the character is in the range of the first 256 characters, don't use the mapping table
-    pu8_CharDataAddress = &mpu8_CharData[mpu16_ContCharPos[u32_CodePoint]];
 
     // ok, we found the character, now we have to calculate the width and the address of the character data
     if(u32_CodePoint>0)
+    {
+      pu8_CharDataAddress = &mpu8_CharData[mpu16_ContCharPos[u32_CodePoint-1]];
       u8_CharWidth = mpu16_ContCharPos[u32_CodePoint]-mpu16_ContCharPos[u32_CodePoint-1];
+    }
     else
+    {
+      pu8_CharDataAddress = mpu8_CharData;
       u8_CharWidth = mpu16_ContCharPos[0];
+    }
 
     rc = ERc::OK;
   }
