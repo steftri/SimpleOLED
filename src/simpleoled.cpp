@@ -3,6 +3,12 @@
 #include "simpleoled.h"
 
 
+#include "font_topaz_proportional.h"
+#include "font_topaz8x8.h"
+#include "font_default.h"
+#include "font_c64.h"
+
+
 #if USE_DEFAULT_FONT == 1
 #include "display_font_default.h"
 #endif
@@ -16,14 +22,14 @@
 #endif
 
 static const uint8_t gau8_UnknownChar[8] PROGMEM = {
-  B10101010,
-  B01010101,
-  B10101010,
-  B01010101,
-  B10101010,
-  B01010101,
-  B10101010,
-  B01010101
+  0b10101010,
+  0b01010101,
+  0b10101010,
+  0b01010101,
+  0b10101010,
+  0b01010101,
+  0b10101010,
+  0b01010101
 };
 
 
