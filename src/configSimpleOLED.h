@@ -12,6 +12,10 @@
 #define USE_DEFAULT_FONT  1
 #endif
 
+#ifndef USE_TOPAZ_SERIF_FONT
+#define USE_TOPAZ_SERIF_FONT    1
+#endif
+
 #ifndef USE_TOPAZ_FONT
 #define USE_TOPAZ_FONT    1
 #endif

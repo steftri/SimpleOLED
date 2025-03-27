@@ -7,7 +7,8 @@
 
 
 #include "font_default.h"
-#include "font_topaz_8x8.h"
+#include "font_topaz_serif.h"
+#include "font_topaz.h"
 #include "font_topaz_proportional.h"
 #include "font_c64.h"
 
@@ -35,6 +36,9 @@ public:
 #if USE_DEFAULT_FONT == 1
     Default,
 #endif
+#if USE_TOPAZ_SERIF_FONT == 1
+    TopazSerif,
+#endif
 #if USE_TOPAZ_FONT == 1
     Topaz,
 #endif
@@ -58,7 +62,10 @@ private:
   FontDefault m_FontDefault;
 #endif
 #if USE_TOPAZ_FONT == 1
-  FontTopaz8x8 m_FontTopaz8x8;
+  FontTopazSerif m_FontTopazSerif;
+#endif
+#if USE_TOPAZ_FONT == 1
+  FontTopaz m_FontTopaz;
 #endif
 #if USE_TOPAZ_PROPORTIONAL_FONT == 1
   FontTopazProportional m_FontTopazProportional;

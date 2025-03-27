@@ -27,7 +27,9 @@ SimpleOLED::SimpleOLED(DisplayInterface *m_DisplayInterface, uint8_t u8_Width, u
 #if USE_DEFAULT_FONT == 1
   mp_CurrentFont = &m_FontDefault;
 #elif USE_TOPAZ_FONT == 1
-  mp_CurrentFont = &m_FontTopaz8x8;
+  mp_CurrentFont = &m_FontTopaz;
+#elif USE_TOPAZ_SERIF_FONT == 1
+  mp_CurrentFont = &m_FontTopazSerif;
 #elif USE_TOPAZ_PROPORTIONAL_FONT == 1
   mp_CurrentFont = &m_FontTopazProportional;
 #elif USE_C64_FONT == 1
@@ -175,9 +177,16 @@ SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const bool b
   }
 #endif
 #if USE_TOPAZ_FONT == 1
+  case TopazSerif:
+  {
+    mp_CurrentFont = &m_FontTopazSerif;
+    return RcOK;
+  }
+#endif
+#if USE_TOPAZ_FONT == 1
   case Topaz:
   {
-    mp_CurrentFont = &m_FontTopaz8x8;
+    mp_CurrentFont = &m_FontTopaz;
     return RcOK;
   }
 #endif
