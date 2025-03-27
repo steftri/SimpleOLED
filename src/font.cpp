@@ -45,16 +45,36 @@ Font::ERc Font::getCharacterData(const uint8_t **ppu8_CharDataAddress, uint8_t *
   const uint8_t *pu8_CharDataAddress = UNKNOWN_CHAR_DATA;
   uint8_t u8_CharWidth = 8;
   ERc rc = ERc::Error;
+  uint16_t u16_MappingTablePos;
 
-  if(u32_CodePoint<mu16_NumberOfContCharaters)
+  if((u32_CodePoint<32) || ((u32_CodePoint>=128) && (u32_CodePoint<128+32)))
+  { 
+    // character not supported
+    if(ppu8_CharDataAddress)
+      *ppu8_CharDataAddress = pu8_CharDataAddress;
+    if(pu8_CharWidth)
+      *pu8_CharWidth = u8_CharWidth;
+    return ERc::Error;
+  }
+
+  // for optimization reasons: the first 32 characers are not used in the font, so we have to shift the mapping table by 32
+  if(u32_CodePoint>=128+32)
+  { 
+    u16_MappingTablePos = u32_CodePoint-32-32;
+  }
+  else
+  {
+    u16_MappingTablePos = u32_CodePoint-32;
+  }
+
+  if(u16_MappingTablePos<mu16_NumberOfContCharaters)
   {
     // the character is in the range of the first 256 characters, don't use the mapping table
 
-    // ok, we found the character, now we have to calculate the width and the address of the character data
-    if(u32_CodePoint>0)
+    if(u16_MappingTablePos>0)
     {
-      pu8_CharDataAddress = &mpu8_CharData[pgm_read_word(&mpu16_ContCharPos[u32_CodePoint-1])];
-      u8_CharWidth = pgm_read_word(&mpu16_ContCharPos[u32_CodePoint])-pgm_read_word(&mpu16_ContCharPos[u32_CodePoint-1]);
+      pu8_CharDataAddress = &mpu8_CharData[pgm_read_word(&mpu16_ContCharPos[u16_MappingTablePos-1])];
+      u8_CharWidth = pgm_read_word(&mpu16_ContCharPos[u16_MappingTablePos])-pgm_read_word(&mpu16_ContCharPos[u16_MappingTablePos-1]);
     }
     else
     {
