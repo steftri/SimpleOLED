@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-#include "utf8.h"
 
 #include "simpleoled.h"
 

@@ -2,15 +2,10 @@
 #define _LIB_SIMPLEOLED_H_
 
 #include <inttypes.h>
+#include <8bitfonts.h>
 
 #include "configSimpleOLED.h"
 
-
-#include "font_default.h"
-#include "font_topaz_serif.h"
-#include "font_topaz.h"
-#include "font_topaz_proportional.h"
-#include "font_c64.h"
 
 class DisplayInterface
 {
