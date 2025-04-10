@@ -5,18 +5,6 @@
 
 
 
-static const uint8_t gau8_UnknownChar[8] PROGMEM = {
-  0b10101010,
-  0b01010101,
-  0b10101010,
-  0b01010101,
-  0b10101010,
-  0b01010101,
-  0b10101010,
-  0b01010101
-};
-
-
 SimpleOLED::SimpleOLED(DisplayInterface *m_DisplayInterface, uint8_t u8_Width, uint8_t u8_Height)
 {
   mp_DisplayInterface = m_DisplayInterface;
@@ -36,8 +24,6 @@ SimpleOLED::SimpleOLED(DisplayInterface *m_DisplayInterface, uint8_t u8_Width, u
 #else
   mp_CurrentFont = &m_FontDefault;
 #endif
-
-  mb_DoubleFontHeight = false;
 
   mu8_CursorX = 0;
   mu8_CursorY = 0;
@@ -154,24 +140,23 @@ SimpleOLED::ERc SimpleOLED::clear(void)
 
 SimpleOLED::ERc SimpleOLED::setCursor(const uint8_t u8_Column, const uint8_t u8_Row)
 {
-  mu8_CursorX = u8_Column*8;
-  mu8_CursorY = u8_Row*(mb_DoubleFontHeight?16:8);
-  setDrawRegion(mu8_CursorX, mu8_CursorY, mb_DoubleFontHeight?2:1);
+  mu8_CursorX = u8_Column * mp_CurrentFont->getCharacterWidth('8');
+  mu8_CursorY = u8_Row * mp_CurrentFont->getFontHeight();
+  setDrawRegion(mu8_CursorX, mu8_CursorY, mp_CurrentFont->getFontHeight());
   return RcOK;
 }
 
 
 
-SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const bool b_DoubleHeight)
+SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const uint8_t u8_ScaleX, const uint8_t u8_ScaleY)
 {
-  mb_DoubleFontHeight = b_DoubleHeight;
-  
   switch(e_Font)
   {
 #if USE_DEFAULT_FONT == 1
   case Default:
   {
     mp_CurrentFont = &m_FontDefault;
+    mp_CurrentFont->setScale(u8_ScaleX, u8_ScaleY);
     return RcOK;
   }
 #endif
@@ -179,6 +164,7 @@ SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const bool b
   case TopazSerif:
   {
     mp_CurrentFont = &m_FontTopazSerif;
+    mp_CurrentFont->setScale(u8_ScaleX, u8_ScaleY);
     return RcOK;
   }
 #endif
@@ -186,6 +172,7 @@ SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const bool b
   case Topaz:
   {
     mp_CurrentFont = &m_FontTopaz;
+    mp_CurrentFont->setScale(u8_ScaleX, u8_ScaleY);
     return RcOK;
   }
 #endif
@@ -193,6 +180,7 @@ SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const bool b
   case TopazProportional:
   {
     mp_CurrentFont = &m_FontTopazProportional;
+    mp_CurrentFont->setScale(u8_ScaleX, u8_ScaleY);
     return RcOK;
   }
 #endif
@@ -200,6 +188,7 @@ SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const bool b
   case C64:
   {
     mp_CurrentFont = &m_FontC64;
+    mp_CurrentFont->setScale(u8_ScaleX, u8_ScaleY);
     return RcOK;
   }
 #endif  
@@ -215,11 +204,10 @@ SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const bool b
 SimpleOLED::ERc SimpleOLED::print(const char *pc_String)
 {
   uint32_t u32_CharacterCode;
-  const uint8_t *pu8_PgmBitmap;
-  uint8_t u8_CharacterWidth;
-  uint8_t au8_Bitmap[16];
-  uint8_t u8_Bitmap;
-  
+  uint8_t u8_CharacterDataSize;
+  uint8_t au8_CharacterData[10*4*4];  // buffer for one character with a width of 10 pixels with scaling x*4, y*4
+  uint8_t u8_FontHeight = mp_CurrentFont->getFontHeight();
+
   uint16_t u16_StringLenth;
   u16_StringLenth = Utf8::strLength(pc_String);
 
@@ -229,36 +217,13 @@ SimpleOLED::ERc SimpleOLED::print(const char *pc_String)
     
     if(u32_CharacterCode=='\n')
     {
-      mu8_CursorY += (mb_DoubleFontHeight?16:8);
-      setDrawRegion(mu8_CursorX, mu8_CursorY, mb_DoubleFontHeight?2:1);
+      mu8_CursorY += u8_FontHeight;
+      setDrawRegion(mu8_CursorX, mu8_CursorY, u8_FontHeight);
       continue;
     }
     
-    // if the character is printable
-    pu8_PgmBitmap = gau8_UnknownChar;
-    u8_CharacterWidth = 8;
-    if(mp_CurrentFont)
-    {
-      mp_CurrentFont->getCharacterData(&pu8_PgmBitmap, &u8_CharacterWidth, u32_CharacterCode);
-    }
-
-    // we have to copy the font bitmap data from flash to RAM first
-    if(mb_DoubleFontHeight)
-    {
-      for(uint8_t u8_Col=0; u8_Col<u8_CharacterWidth; u8_Col++)
-      {
-        u8_Bitmap = pgm_read_byte(&pu8_PgmBitmap[u8_Col]);
-        au8_Bitmap[u8_Col*2]  = ((u8_Bitmap&0x08)?0xC0:0x00) | ((u8_Bitmap&0x04)?0x30:0x00) | ((u8_Bitmap&0x02)?0x0C:0x00) | ((u8_Bitmap&0x01)?0x03:0x00);
-        au8_Bitmap[u8_Col*2+1]= ((u8_Bitmap&0x80)?0xC0:0x00) | ((u8_Bitmap&0x40)?0x30:0x00) | ((u8_Bitmap&0x20)?0x0C:0x00) | ((u8_Bitmap&0x10)?0x03:0x00);
-      }
-      drawBuffer(2*u8_CharacterWidth, au8_Bitmap);
-    }
-    else
-    {
-      for(uint8_t u8_Col=0; u8_Col<u8_CharacterWidth; u8_Col++)
-        au8_Bitmap[u8_Col]=pgm_read_byte(&pu8_PgmBitmap[u8_Col]);
-      drawBuffer(u8_CharacterWidth, au8_Bitmap);
-    }
+    mp_CurrentFont->getCharacterData(&u8_CharacterDataSize, au8_CharacterData, sizeof(au8_CharacterData), u32_CharacterCode);
+    drawBuffer(u8_CharacterDataSize, au8_CharacterData);
   }
 
   return RcOK;
@@ -276,16 +241,16 @@ SimpleOLED::ERc SimpleOLED::println(const char *pc_String)
 
 
 
-SimpleOLED::ERc SimpleOLED::setDrawRegion(const uint8_t u8_Segment, const uint8_t u8_StartPage, const uint8_t u8_Pages)
+SimpleOLED::ERc SimpleOLED::setDrawRegion(const uint8_t u8_Segment, const uint8_t u8_StartPage, const uint8_t u8_Height)
 {
-  uint8_t au8_CommandY[3]={0x22, (uint8_t)(u8_StartPage>>3), (uint8_t)(u8_StartPage>>3)};
+  uint8_t au8_CommandY[3]={0x22, (uint8_t)(u8_StartPage/8), (uint8_t)(u8_StartPage/8)};
   uint8_t au8_CommandX[3]={0x21, u8_Segment, 0x7f};  // width = 0x7f = 127
 
   if(!mp_DisplayInterface)
     return RcError;
 
-  if(u8_Pages>1)
-    au8_CommandY[2]=(uint8_t)((u8_StartPage>>3)+(u8_Pages-1));
+  if(u8_Height>8)
+    au8_CommandY[2]=(uint8_t)((u8_StartPage/8)+((u8_Height/8)-1));
 
   // Set address mode
   //mp_DisplayInterface->sendCmd(3, (const uint8_t *)"\x20\x01");

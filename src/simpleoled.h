@@ -51,7 +51,6 @@ private:
   uint8_t mu8_Height;
   uint8_t mu8_CursorX;
   uint8_t mu8_CursorY;
-  bool mb_DoubleFontHeight;
 
 #if USE_DEFAULT_FONT == 1
   FontDefault m_FontDefault;
@@ -79,7 +78,7 @@ public:
   ERc enable(const bool b_Enable);
   
   ERc clear(void);
-  ERc setFont(const EFont e_Font, const bool b_DoubleHeight = false);
+  ERc setFont(const EFont e_Font, const uint8_t u8_ScaleX = 1, const uint8_t u8_ScaleY = 1);
   ERc setCursor(const uint8_t u8_Column, const uint8_t u8_Row);  // in characters
   ERc print(const char *pc_String);
   ERc println(const char *pc_String);
