@@ -5,9 +5,11 @@
 
 
 
-SimpleOLED::SimpleOLED(DisplayInterface *m_DisplayInterface, uint8_t u8_Width, uint8_t u8_Height)
+
+
+SimpleOLED::SimpleOLED(DisplayInterface *p_DisplayInterface, uint8_t u8_Width, uint8_t u8_Height)
+ : m_DisplayController(p_DisplayInterface)
 {
-  mp_DisplayInterface = m_DisplayInterface;
   mu8_Width    = u8_Width;
   mu8_Height   = u8_Height;
   
@@ -33,52 +35,21 @@ SimpleOLED::SimpleOLED(DisplayInterface *m_DisplayInterface, uint8_t u8_Width, u
 
 SimpleOLED::ERc SimpleOLED::begin(const bool b_Enable)
 {
-  uint8_t au8_Cmd[2];
+  m_DisplayController.setMultiplexRatio(mu8_Height-1);
+  m_DisplayController.setDisplayOffset(0);  
+  m_DisplayController.setDisplayStartLine(0);
 
-  if(!mp_DisplayInterface)
-    return RcError;
-
-  mp_DisplayInterface->begin();
+  m_DisplayController.setSegmentRemap(true);
+  m_DisplayController.setComOutputScanDirection(DisplayControllerSSD1306::EScanDirection::Remapped);
+  m_DisplayController.setComPinsHardwareConfig((mu8_Height==64)?true:false, false); 
   
-  // Set MUX ratio
-  au8_Cmd[0] = 0xa8; au8_Cmd[1] = mu8_Height-1;
-  mp_DisplayInterface->sendCmd(au8_Cmd, 2);
-  
-  // Set Display Offset
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\xd3\x00", 2);
-  
-  // Set Display Start Line
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\x40", 1);
+  m_DisplayController.setContrastControl(0x7f);  
+  m_DisplayController.setEntireDisplayOn(false);
+  m_DisplayController.setInverseDisplay(false);
+  m_DisplayController.setDisplayClock(1, 8);
+  m_DisplayController.setChargePumpRegulator(true);
 
-  // Additional: Set memory addressing mode
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\x20\x00", 2);
-
-  // Set Segment re-map
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\xa1", 1);   // column address 0 is mapped to SEG0 (default); ardafruit nimmt hier 0xa1
-
-  // Set COM Output Scan Direction
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\xc8", 1);   // normal scan direction would be 0xc0
-  
-  // Set COM Pins hardware configurarion
-  mp_DisplayInterface->sendCmd((const uint8_t *)((mu8_Height==64)?"\xDA\x12":"\xDA\x02"), 2);
-  
-  // Set Contrast Control
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\x81\x7f", 2);
-
-  // Disable Entire Display On
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\xa4", 1);
-
-  // Set Normal Display
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\xA6", 1);
-  
-  // Set Osc Frequency
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\xD5\x80", 2);
-  
-  // Enable charge pump regulator
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\x8d\x14", 2);  // EXERNAL VCC = 0x10, sonst 0x14
-
-  // Set address mode
-  mp_DisplayInterface->sendCmd((const uint8_t *)"\x20\x01", 2);  // vertical address mode
+  m_DisplayController.setMemoryAddressingMode(DisplayControllerSSD1306::EAddressingMode::Vertical);
 
   clear();
   enable(b_Enable);
@@ -97,12 +68,7 @@ void SimpleOLED::end(void)
 
 SimpleOLED::ERc SimpleOLED::enable(const bool b_Enable)
 {
-  if(!mp_DisplayInterface)
-    return RcError;
-
-  // Display On
-  mp_DisplayInterface->sendCmd((const uint8_t *)(b_Enable?"\xAF":"\xAE"), 1);
-
+  m_DisplayController.setDisplayOn(b_Enable);
   return RcOK;
 }
 
@@ -110,26 +76,12 @@ SimpleOLED::ERc SimpleOLED::enable(const bool b_Enable)
 
 SimpleOLED::ERc SimpleOLED::clear(void)
 {
-  uint8_t au8_CommandX[3]={0x21, 0, 0x7f};  // width = 0x7f = 127
-  uint8_t au8_CommandY[3]={0x22};
-
-  if(!mp_DisplayInterface)
-    return RcError;
-
-  // Set Column address
-  mp_DisplayInterface->sendCmd(au8_CommandX, 3);
+  m_DisplayController.setColumnAddress(0, mu8_Width-1);
 
   for(uint8_t u8_Page=0; u8_Page<(uint8_t)(mu8_Height>>3); u8_Page++)
   {
-    // Set Page address
-    au8_CommandY[1]=u8_Page;
-    au8_CommandY[2]=u8_Page;
-    mp_DisplayInterface->sendCmd(au8_CommandY, 3);
-
-    for(uint8_t u8_x=0; u8_x<mu8_Width; u8_x+=16)
-    {
-      mp_DisplayInterface->sendData((const uint8_t *)"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16);
-    }
+    m_DisplayController.setPageAddress(u8_Page, u8_Page);
+    m_DisplayController.sendData(nullptr, mu8_Width);
   }
   setCursor(0, 0);
   
@@ -243,24 +195,8 @@ SimpleOLED::ERc SimpleOLED::println(const char *pc_String)
 
 SimpleOLED::ERc SimpleOLED::setDrawRegion(const uint8_t u8_Segment, const uint8_t u8_StartPage, const uint8_t u8_Height)
 {
-  uint8_t au8_CommandY[3]={0x22, (uint8_t)(u8_StartPage/8), (uint8_t)(u8_StartPage/8)};
-  uint8_t au8_CommandX[3]={0x21, u8_Segment, 0x7f};  // width = 0x7f = 127
-
-  if(!mp_DisplayInterface)
-    return RcError;
-
-  if(u8_Height>8)
-    au8_CommandY[2]=(uint8_t)((u8_StartPage/8)+((u8_Height/8)-1));
-
-  // Set address mode
-  //mp_DisplayInterface->sendCmd(3, (const uint8_t *)"\x20\x01");
-
-  // Set Page address
-  mp_DisplayInterface->sendCmd(au8_CommandY, 3);
-  
-  // Set Column address
-  mp_DisplayInterface->sendCmd(au8_CommandX, 3);
-
+  m_DisplayController.setPageAddress(u8_StartPage/8, (u8_StartPage+u8_Height-1)/8);
+  m_DisplayController.setColumnAddress(u8_Segment, 0x7f);  
   return RcOK;
 }
 
@@ -268,11 +204,6 @@ SimpleOLED::ERc SimpleOLED::setDrawRegion(const uint8_t u8_Segment, const uint8_
 
 SimpleOLED::ERc SimpleOLED::drawBuffer(const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer)
 {
-  if(!mp_DisplayInterface)
-    return RcError;
-
-  mp_DisplayInterface->sendData(pu8_Buffer, u8_BufferSize);
-
+  m_DisplayController.sendData(pu8_Buffer, u8_BufferSize);
   return RcOK; 
 }
-

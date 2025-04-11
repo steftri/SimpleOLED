@@ -6,15 +6,58 @@
 
 #include "configSimpleOLED.h"
 
+#include "displayinterface.h"
 
-class DisplayInterface
-{
-public:  
-  virtual void begin(void) = 0;
-  virtual void end(void) = 0;
-  virtual void sendCmd(const uint8_t *pCmdBuffer, const size_t cmdSize) = 0;
-  virtual void sendData(const uint8_t *pDataBuffer, const size_t dataSize) = 0;
-};
+#include "displaycontroller_ssd1306.h"
+
+
+
+
+/*
+  // Set MUX ratio  0xa8; au8_Cmd[1] = mu8_Height-1;
+  
+  // Set Display Offset \xd3\x00", 2);
+  
+  // Set Display Start Line \x40", 1);
+
+  // Additional: Set memory addressing mode \x20\x00", 2);
+
+  // Set Segment re-map \xa1", 1);   // column address 0 is mapped to SEG0 (default); ardafruit nimmt hier 0xa1
+
+  // Set COM Output Scan Direction \xc8", 1);   // normal scan direction would be 0xc0
+  
+  // Set COM Pins hardware configurarion \xDA\x12":"\xDA\x02"), 2);
+  
+  // Set Contrast Control \x81\x7f", 2);
+
+  // Disable Entire Display On \xa4", 1);
+
+  // Set Normal Display \xA6", 1);
+  
+  // Set Osc Frequency \xD5\x80", 2);
+  
+  // Enable charge pump regulator \x8d\x14", 2);  // EXERNAL VCC = 0x10, sonst 0x14
+
+  // Set address mode \x20\x01", 2);  // vertical address mode
+
+  // Display On \xAF":"\xAE"), 1);  
+
+
+   // Set Column address
+   mp_DisplayInterface->sendCmd(au8_CommandX, 3);
+
+
+     // Set Page address
+     au8_CommandY[1]=u8_Page;
+     au8_CommandY[2]=u8_Page;
+     mp_DisplayInterface->sendCmd(au8_CommandY, 3); 
+
+*/
+
+
+
+
+
 
 
 class SimpleOLED
@@ -46,7 +89,7 @@ public:
   } EFont;
 
 private:
-  DisplayInterface *mp_DisplayInterface;
+  DisplayControllerSSD1306 m_DisplayController;
   uint8_t mu8_Width;
   uint8_t mu8_Height;
   uint8_t mu8_CursorX;
