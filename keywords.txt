@@ -1,9 +1,9 @@
-# Syntax Coloring Map For SimpleOLED
+# Syntax Coloring Map For TinyDisplay
 # https://arduino.github.io/arduino-cli/library-specification/#keywords
 # Formatted by a single true tab (not spaces)
 
 # Datatypes (KEYWORD1)
-SimpleOLED  KEYWORD1
+TinyDisplay  KEYWORD1
 
 # Methods and Functions (KEYWORD2)
 begin	KEYWORD2
@@ -18,7 +18,7 @@ setDrawRegion	KEYWORD2
 drawBuffer	KEYWORD2
 
 # Instances (KEYWORD2)
-Display	KEYWORD2
+myTinyDisplay	KEYWORD2
 
 # Constants (LITERAL1)
 RcOK	LITERAL1

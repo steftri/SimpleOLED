@@ -1,6 +1,6 @@
-# SimpleOLED
+# TinyDisplay
 
-Simple text-only library for OLED SSD1306 via i2c
+Simple text-only library for OLED display SSD1306
 
 
 ## General
@@ -10,12 +10,6 @@ This library allows to display text on an OLED display controlled by the SSD1306
 In contrast to other display drivers, this driver does not hold a buffer for execution of paint operations in memory, so the very limited SRAM on Arduino boards stays available for other needs.
 
 Therefore enhanced paint operations (circles, flood fill, lines etc.) are not possible directly. The library is designed for displaying text.
-
-Three fonts are available:
-
-1. The default font is a very tiny font with 6x8 pixels per character.
-2. The Topaz font is a font inspired by Amiga OS 2.x and above. In contrast to the original font, some aditional characters are available (the EURO sign for example).
-3. The C64 font is inspired by the font of the Commodore 64. The character mapping also complies to ASCII/UTF-8, but as the original C64 font, it does not have the special characters needed in some languages. 
 
 
 ## Features
@@ -39,7 +33,7 @@ For library development using Visual Studio Code, the following tools and framew
 * PlantUML 2.17.5 by Arnaud Roques
 
 ## Dependencies
-The library uses the Arduino wire library.
+Beside the Arduino framework, the library uses the 8BitFonts library.
 
 # Usage
 The OLED SSD1306 must be connected via I2C (aka TwoWire, TWI or simply Wire).
@@ -51,14 +45,14 @@ The OLED SSD1306 must be connected via I2C (aka TwoWire, TWI or simply Wire).
 | SDA     | SDA     |
 | SCL     | SCL     |
 
-An instance of the class "SimpleOLED" is needed. As first argument, the constructor expects the I2C address of the display (usually 0x3C), followed by the width (128) and the height (32 or 64) in pixels.
+An instance of the class "TinyDisplay" is needed. As first argument, the constructor expects the I2C address of the display (usually 0x3C), followed by the width (128) and the height (32 or 64) in pixels.
 
 ```C++
 #define DISPLAY_I2C_ADDR 0x3C
 #define DISPLAY_WIDTH     128
 #define DISPLAY_HEIGHT     32
 
-SimpleOLED Display(DISPLAY_I2C_ADDR, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+TinyDisplay Display(DISPLAY_I2C_ADDR, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 ```
 
 ## Functions
@@ -94,7 +88,7 @@ After changing the font, the cursor position must be set again (see setCursor).
 
 Example:
 ```C++
-Display.setFont(SimpleOLED::Topaz, true);
+Display.setFont(TinyDisplay::Topaz, true);
 ```
 
 ### setCursor(uint8_t Column, uint8_t Row)
@@ -132,7 +126,8 @@ Display.println("Hello World!");
 
 ### v2.0.0 (2025-03-20)
 
-* Support for UFT-8 and proportional fonts added
+* Renamed from SimpleOLED to TinyDisplay 
+* Fonts moved to 8BitFonts library
 
 ### v1.2.0 (2023-12-23)
 

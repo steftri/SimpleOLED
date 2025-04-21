@@ -1,13 +1,10 @@
 #include <Arduino.h>
 
-
-#include "simpleoled.h"
-
+#include "TinyDisplay.h"
 
 
 
-
-SimpleOLED::SimpleOLED(DisplayInterface *p_DisplayInterface, uint8_t u8_Width, uint8_t u8_Height)
+TinyDisplay::TinyDisplay(DisplayInterface *p_DisplayInterface, uint8_t u8_Width, uint8_t u8_Height)
  : m_DisplayController(p_DisplayInterface)
 {
   mu8_Width    = u8_Width;
@@ -33,7 +30,7 @@ SimpleOLED::SimpleOLED(DisplayInterface *p_DisplayInterface, uint8_t u8_Width, u
 
 
 
-SimpleOLED::ERc SimpleOLED::begin(const bool b_Enable)
+TinyDisplay::ERc TinyDisplay::begin(const bool b_Enable)
 {
   m_DisplayController.setMultiplexRatio(mu8_Height-1);
   m_DisplayController.setDisplayOffset(0);  
@@ -59,14 +56,14 @@ SimpleOLED::ERc SimpleOLED::begin(const bool b_Enable)
 
 
 
-void SimpleOLED::end(void)
+void TinyDisplay::end(void)
 {
   enable(false);
 }
 
 
 
-SimpleOLED::ERc SimpleOLED::enable(const bool b_Enable)
+TinyDisplay::ERc TinyDisplay::enable(const bool b_Enable)
 {
   m_DisplayController.setDisplayOn(b_Enable);
   return RcOK;
@@ -74,7 +71,7 @@ SimpleOLED::ERc SimpleOLED::enable(const bool b_Enable)
 
 
 
-SimpleOLED::ERc SimpleOLED::clear(void)
+TinyDisplay::ERc TinyDisplay::clear(void)
 {
   m_DisplayController.setColumnAddress(0, mu8_Width-1);
 
@@ -90,7 +87,7 @@ SimpleOLED::ERc SimpleOLED::clear(void)
 
 
 
-SimpleOLED::ERc SimpleOLED::setCursor(const uint8_t u8_Column, const uint8_t u8_Row)
+TinyDisplay::ERc TinyDisplay::setCursor(const uint8_t u8_Column, const uint8_t u8_Row)
 {
   mu8_CursorX = u8_Column * mp_CurrentFont->getCharacterWidth('8');
   mu8_CursorY = u8_Row * mp_CurrentFont->getFontHeight();
@@ -100,7 +97,7 @@ SimpleOLED::ERc SimpleOLED::setCursor(const uint8_t u8_Column, const uint8_t u8_
 
 
 
-SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const uint8_t u8_ScaleX, const uint8_t u8_ScaleY)
+TinyDisplay::ERc TinyDisplay::setFont(const TinyDisplay::EFont e_Font, const uint8_t u8_ScaleX, const uint8_t u8_ScaleY)
 {
   switch(e_Font)
   {
@@ -153,7 +150,7 @@ SimpleOLED::ERc SimpleOLED::setFont(const SimpleOLED::EFont e_Font, const uint8_
 
 
 
-SimpleOLED::ERc SimpleOLED::print(const char *pc_String)
+TinyDisplay::ERc TinyDisplay::print(const char *pc_String)
 {
   uint32_t u32_CharacterCode;
   uint8_t u8_CharacterDataSize;
@@ -183,7 +180,7 @@ SimpleOLED::ERc SimpleOLED::print(const char *pc_String)
 
 
 
-SimpleOLED::ERc SimpleOLED::println(const char *pc_String)
+TinyDisplay::ERc TinyDisplay::println(const char *pc_String)
 {
   print(pc_String);
   print("\n");
@@ -193,7 +190,7 @@ SimpleOLED::ERc SimpleOLED::println(const char *pc_String)
 
 
 
-SimpleOLED::ERc SimpleOLED::setDrawRegion(const uint8_t u8_Segment, const uint8_t u8_StartPage, const uint8_t u8_Height)
+TinyDisplay::ERc TinyDisplay::setDrawRegion(const uint8_t u8_Segment, const uint8_t u8_StartPage, const uint8_t u8_Height)
 {
   m_DisplayController.setPageAddress(u8_StartPage/8, (u8_StartPage+u8_Height-1)/8);
   m_DisplayController.setColumnAddress(u8_Segment, 0x7f);  
@@ -202,7 +199,7 @@ SimpleOLED::ERc SimpleOLED::setDrawRegion(const uint8_t u8_Segment, const uint8_
 
 
 
-SimpleOLED::ERc SimpleOLED::drawBuffer(const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer)
+TinyDisplay::ERc TinyDisplay::drawBuffer(const uint8_t u8_BufferSize, const uint8_t *pu8_Buffer)
 {
   m_DisplayController.sendData(pu8_Buffer, u8_BufferSize);
   return RcOK; 

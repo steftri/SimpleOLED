@@ -1,12 +1,12 @@
 //
-//  configSimpleOLED.h
-//  SimpleOLED
+//  configTinyDisplay.h
+//  TinyDisplay
 //
 //  Created by Stefan Trippler on 2021-03-11.
 //
 
-#ifndef configSimpleOLED_h
-#define configSimpleOLED_h
+#ifndef configTinyDisplay_h
+#define configTinyDisplay_h
 
 #ifndef USE_DEFAULT_FONT
 #define USE_DEFAULT_FONT  1
@@ -28,4 +28,4 @@
 #define USE_C64_FONT      1
 #endif
 
-#endif /* configSimpleOLED_h */
+#endif /* configTinyDisplay_h */

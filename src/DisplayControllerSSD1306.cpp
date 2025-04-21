@@ -1,6 +1,6 @@
-#include "displayinterface.h"
+#include "DisplayInterface.h"
 
-#include "displaycontroller_ssd1306.h"
+#include "DisplayControllerSSD1306.h"
 
 
 enum class ECmd
